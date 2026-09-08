@@ -22,6 +22,17 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/styles_global_03_qfau.css",
       "static/chunks/pages__app_0du2_q-._.js",
       "static/chunks/turbopack-pages__app_01xkjs7._.js"
+    ],
+    "/reading-profile": [
+      "static/chunks/node_modules_next_dist_compiled_14ibvna._.js",
+      "static/chunks/node_modules_next_dist_shared_lib_196_nl_._.js",
+      "static/chunks/node_modules_next_dist_client_16lnmlo._.js",
+      "static/chunks/node_modules_next_dist_0zk-zb1._.js",
+      "static/chunks/node_modules_react-dom_0kla17-._.js",
+      "static/chunks/node_modules_1z0m79v._.js",
+      "static/chunks/[root-of-the-server]__15xenym._.js",
+      "static/chunks/pages_reading-profile_0du2_q-._.js",
+      "static/chunks/turbopack-pages_reading-profile_0zgr28q._.js"
     ]
   },
   "devFiles": [],
