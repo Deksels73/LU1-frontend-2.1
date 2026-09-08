@@ -7,4 +7,11 @@ export default function ReadingProfile() {
     onderwerp: "",
     lengte: "",
     leesdoel: ""
-  })}
+  })
+  function handleChange(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
+  }
+}
