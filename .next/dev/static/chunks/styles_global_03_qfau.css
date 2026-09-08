@@ -1,0 +1,161 @@
+/* [project]/styles/global.css [client] (css) */
+body {
+  background-color: #f7f7f7;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.sidebar {
+  box-sizing: border-box;
+  background-color: #fff;
+  border-right: 1px solid #ddd;
+  width: 240px;
+  height: 100vh;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+}
+
+.sidebar ul {
+  padding: 0;
+  list-style: none;
+}
+
+.sidebar li {
+  margin: 15px 0;
+}
+
+.sidebar a {
+  color: #333;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  color: #0078ff;
+}
+
+.content {
+  box-sizing: border-box;
+  width: calc(100% - 260px);
+  margin-left: 260px;
+  padding: 20px;
+}
+
+h1 {
+  margin: 0 0 15px;
+  font-size: 32px;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+h3 {
+  margin: 10px 0;
+  font-size: 20px;
+}
+
+.hero {
+  background-position: center;
+  background-size: cover;
+  border-radius: 8px;
+  width: 100%;
+  min-height: 250px;
+  margin-top: 20px;
+  overflow: hidden;
+}
+
+.hero-overlay {
+  color: #fff;
+  background: #0006;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+}
+
+.cards {
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 20px;
+  width: 100%;
+  margin-top: 1px;
+  display: flex;
+}
+
+.card {
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 8px;
+  width: 30%;
+  min-width: 280px;
+  padding: 15px;
+  box-shadow: 0 2px 6px #0000001a;
+}
+
+.card img {
+  border-radius: 6px;
+  width: 100%;
+}
+
+.btn {
+  color: #fff;
+  background: #0078ff;
+  border-radius: 4px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn:hover {
+  background: #005fcc;
+}
+
+.header {
+  box-sizing: border-box;
+  background-color: #e0e0e0;
+  border-radius: 8px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 20px;
+  display: flex;
+}
+
+.header-left h1 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.header-left p {
+  color: #555;
+  margin: 5px 0 0;
+  font-size: 16px;
+}
+
+.account-btn {
+  color: #fff;
+  cursor: pointer;
+  background-color: #0078ff;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 18px;
+  font-size: 16px;
+  transition: all .2s;
+}
+
+.account-btn:hover {
+  background-color: #005fcc;
+}
+
+/*# sourceMappingURL=styles_global_03_qfau.css.map*/
