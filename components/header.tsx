@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Header() {
   return (
     <header className="header">
@@ -6,7 +8,9 @@ export default function Header() {
         <p>Persoonlijk leesadvies voor elke student</p>
       </div>
 
-      <button className="account-btn">Account</button>
+     <Link href="/login">
+  <button className="account-btn">Account</button>
+</Link>
     </header>
   );
 }

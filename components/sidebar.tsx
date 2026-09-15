@@ -1,14 +1,21 @@
+import Link from "next/link";
+
 export default function Sidebar() {
   return (
-    <aside className="sidebar">
-      <h2>Menu</h2>
+    <div className="sidebar">
+
+      {/* Logo bovenaan */}
+      <Link href="/" className="logo">
+        <img src="/img/logo.png" alt="Logo" />
+      </Link>
+
       <ul>
-        <li><a href="/reading-profile">Leesprofiel</a></li>
-        <li><a href="/advice">Advies</a></li>
-        <li><a href="/catalog">Catalogus</a></li>
-        <li><a href="/reading-list">Leeslijst</a></li>
-        <li><a href="/teacher">Docent</a></li>
+        <li><Link href="/profiel/ProfielBekijken">Leesprofiel</Link></li>
+        <li><Link href="/advice">Advies</Link></li>
+        <li><Link href="/catalog">Catalogus</Link></li>
+        <li><Link href="/reading-list">Leeslijst</Link></li>
+        <li><Link href="/teacher">Docent</Link></li>
       </ul>
-    </aside>
+    </div>
   );
 }

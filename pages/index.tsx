@@ -25,18 +25,21 @@ export default function Home() {
           <div className="card">
             <h3>Leesprofiel invullen</h3>
             <p>Vul je voorkeuren in en ontvang persoonlijk leesadvies.</p>
-            <a className="btn" href="/reading-profile">Start</a>
+            
+            <a className="btn" href="/profiel/ProfielInvullen">Start</a>
           </div>
 
           <div className="card">
             <h3>Leesadvies</h3>
-            <p>Krijg drie titels die perfect passen bij jouw profiel.</p>
+            <p>Krijg drie titels die perfect passen bij jouw profiel. </p>
+          
             <a className="btn" href="/advice">Bekijk advies</a>
           </div>
 
           <div className="card">
             <h3>Catalogus</h3>
             <p>Blader door alle beschikbare titels en filter op jouw voorkeuren.</p>
+            
             <a className="btn" href="/catalog">Open catalogus</a>
           </div>
         </section>

@@ -41,6 +41,13 @@ body {
   color: #0078ff;
 }
 
+.logo img {
+  width: 140px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+
 /* ====== CONTENT ====== */
 .content {
   margin-left: 260px;              /* ruimte voor sidebar */
@@ -102,11 +109,16 @@ h3 {
   background: white;
   border-radius: 8px;
   padding: 15px;
-  width: 30%;                        /* 3 kaarten → 30% werkt perfect */
-  min-width: 280px;                  /* voorkomt dat ze te klein worden */
+  width: 30%;
+  min-width: 280px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   box-sizing: border-box;
+
+  display: flex;                 /* BELANGRIJK */
+  flex-direction: column;        /* BELANGRIJK */
+  justify-content: space-between;/* duwt de knop naar beneden */
 }
+
 
 
 .card img {
@@ -165,4 +177,108 @@ h3 {
 
 .account-btn:hover {
   background-color: #005fcc;
+}
+
+/* Spinner button*/
+.btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  background: #0070f3;
+  color: white;
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/*SkeletonAdvice*/
+.skeleton-advice {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 24px;
+  background: #e2e2e2;
+  border-radius: 6px;
+  animation: pulse 1.4s infinite ease-in-out;
+}
+
+.skeleton-card {
+  width: 100%;
+  height: 120px;
+  background: #e2e2e2;
+  border-radius: 10px;
+  animation: pulse 1.4s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: .4; }
+  100% { opacity: 1; }
+}
+/*centreren */
+.center-wrapper {
+  max-width: 550px;      /* breedte van het formulier */
+  margin: 0 auto;        /* centreert horizontaal */
+  padding: 20px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.card{
+  width: 100%;
+}
+/*skeleton catalog */
+.skeleton {
+  background: #eee;
+  border-radius: 10px;
+  padding: 20px;
+  animation: pulse 1.5s infinite;
+}
+
+.skeleton-title {
+  height: 20px;
+  width: 60%;
+  background: #ddd;
+  margin-bottom: 10px;
+}
+
+.skeleton-text {
+  height: 14px;
+  width: 80%;
+  background: #ddd;
+}
+
+@keyframes pulse {
+  0% { opacity: .7; }
+  50% { opacity: 1; }
+  100% { opacity: .7; }
 }
