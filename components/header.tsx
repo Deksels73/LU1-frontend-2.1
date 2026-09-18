@@ -8,7 +8,7 @@ export default function Header() {
         <p>Persoonlijk leesadvies voor elke student</p>
       </div>
 
-     <Link href="/login">
+     <Link href="/profiel/login">
   <button className="account-btn">Account</button>
 </Link>
     </header>

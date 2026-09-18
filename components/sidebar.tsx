@@ -10,7 +10,7 @@ export default function Sidebar() {
       </Link>
 
       <ul>
-        <li><Link href="/profiel/ProfielBekijken">Leesprofiel</Link></li>
+        <li><Link href="/leesprofiel/ProfielBekijken">Leesprofiel</Link></li>
         <li><Link href="/advice">Advies</Link></li>
         <li><Link href="/catalog">Catalogus</Link></li>
         <li><Link href="/reading-list">Leeslijst</Link></li>
