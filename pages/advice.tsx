@@ -1,19 +1,113 @@
+// import Sidebar from "../components/sidebar";
+// import Header from "../components/header";
+// import { useEffect, useState } from "react";
+// import SkeletonAdvice from "../components/SkeletonAdvice";
+
+// export default function Advice() {
+//   const [loading, setLoading] = useState(true);
+//   const [advies, setAdvies] = useState<any[]>([]);
+//   const [user, setUser] = useState(null);
+
+//   useEffect(() => {
+//     // user ophalen uit localStorage
+//     const storedUser = localStorage.getItem("user");
+//     if (storedUser) {
+//       setUser(JSON.parse(storedUser));
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     if (!user) return; // wacht tot user geladen is
+
+//     async function fetchAdvice() {
+//       try {
+//         const res = await fetch(`http://localhost:8080/advies/${user.id}`);
+//         const data = await res.json();
+
+//         setAdvies(data.advies || []);
+//       } catch (err) {
+//         console.error("Fout bij ophalen advies:", err);
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+
+//     fetchAdvice();
+//   }, [user]);
+
+//   return (
+//     <div>
+//       <Sidebar />
+//       <main className="content">
+//         <Header />
+
+//         <h2>Jouw Leesadvies</h2>
+//         <p>Op basis van jouw leesprofiel hebben we drie titels voor je geselecteerd.</p>
+
+//         {loading && <p>Advies wordt geladen...</p>}
+
+//         {!loading && advies.length === 0 && (
+//           <p>Er is nog geen advies beschikbaar. Vul eerst je leesprofiel in.</p>
+//         )}
+
+//         {!loading && (
+// <section className="cards">
+//   {advies.map((item, index) => (
+//     <div key={index} className="card">
+//       <h3>{item.book.Titel}</h3>
+//       <p><strong>Auteur:</strong> {item.book.Auteur}</p>
+//       <p>{item.book.beschrijving}</p>
+
+//       {item.book.thema && (
+//         <p><strong>Thema:</strong> {item.book.thema}</p>
+//       )}
+
+//       <em>{item.reason}</em>
+//     </div>
+//   ))}
+// </section>
+
+//         )}
+//       </main>
+//     </div>
+//   );
+// }
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import SkeletonAdvice from "../components/SkeletonAdvice";
+import { AdviesItem } from "../types";
 
 export default function Advice() {
   const [loading, setLoading] = useState(true);
-  const [advice, setAdvice] = useState<string[]>([]);
+  const [advies, setAdvies] = useState<AdviesItem[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchAdvice() {
-      try {
-        const res = await fetch("http://localhost:8080/suggestion");
-        const data = await res.json();
+      const token = localStorage.getItem("token");
 
-        setAdvice(data.titles || []);
+      // Niet ingelogd: terug naar login
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const res = await fetch("http://localhost:8080/advies", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Token ongeldig of verlopen
+        if (res.status === 401) {
+          localStorage.clear();
+          router.push("/login");
+          return;
+        }
+
+        const data = await res.json();
+        setAdvies(data.advies || []);
       } catch (err) {
         console.error("Fout bij ophalen advies:", err);
       } finally {
@@ -27,7 +121,6 @@ export default function Advice() {
   return (
     <div>
       <Sidebar />
-
       <main className="content">
         <Header />
 
@@ -36,17 +129,23 @@ export default function Advice() {
 
         {loading && <SkeletonAdvice />}
 
-        {!loading && advice.length === 0 && (
+        {!loading && advies.length === 0 && (
           <p>Er is nog geen advies beschikbaar. Vul eerst je leesprofiel in.</p>
         )}
 
         {!loading && (
           <section className="cards">
-            {advice.map((title, index) => (
+            {advies.map((item, index) => (
               <div key={index} className="card">
-                <h3>{title}</h3>
-                <p>Deze titel past goed bij jouw voorkeuren.</p>
-                <button className="btn">Meer info</button>
+                <h3>{item.book.Titel}</h3>
+                <p><strong>Auteur:</strong> {item.book.Auteur}</p>
+                <p>{item.book.beschrijving}</p>
+
+                {item.book.thema && (
+                  <p><strong>Thema:</strong> {item.book.thema}</p>
+                )}
+
+                <em>{item.reason}</em>
               </div>
             ))}
           </section>

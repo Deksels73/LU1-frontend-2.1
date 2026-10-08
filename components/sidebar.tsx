@@ -6,7 +6,8 @@ export default function Sidebar() {
 
       {/* Logo bovenaan */}
       <Link href="/" className="logo">
-        <img src="/img/logo.png" alt="Logo" />
+     <img src="/img/logo.png" alt="Vrij Lezen op Maat logo" />
+
       </Link>
 
       <ul>

@@ -17,6 +17,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "generate:api": "npx openapi-typescript@7.13.0 \"../LU1 Backend 2.1/openapi.yaml\" -o types/api.ts"
   }
 }

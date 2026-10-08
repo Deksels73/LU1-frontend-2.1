@@ -1,29 +1,15 @@
-export default function SkeletonCatalog() {
-  const rows = Array.from({ length: 10 });
-
+export default function CatalogCardSkeleton() {
   return (
-    <table className="catalog-table">
-      <thead>
-        <tr>
-          <th>Titel</th>
-          <th>Auteur</th>
-          <th>Jaar</th>
-          <th>Niveau</th>
-          <th></th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {rows.map((_, index) => (
-          <tr key={index} className="skeleton-row">
-            <td><div className="skeleton skeleton-text"></div></td>
-            <td><div className="skeleton skeleton-text"></div></td>
-            <td><div className="skeleton skeleton-text"></div></td>
-            <td><div className="skeleton skeleton-text"></div></td>
-            <td><div className="skeleton skeleton-button"></div></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="catalog-cards-skeleton">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="card-skeleton">
+          <div className="skeleton-title" />
+          <div className="skeleton-line" />
+          <div className="skeleton-line short" />
+          <div className="skeleton-line" />
+          <div className="skeleton-line shorter" />
+        </div>
+      ))}
+    </div>
   );
 }
