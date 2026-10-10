@@ -1277,3 +1277,47 @@ a.btn {
 .dashboard-container button {
   text-align: center;
 }
+/*checkboxes*/
+.filter-group {
+  margin-bottom: 1rem;
+  overflow: visible; /* voorkomt dubbele scroll */
+}
+
+.checkbox-item {
+  display: block;
+  margin: 4px 0;
+}
+
+/* Scrollbare kolommen */
+.type-scroll,
+.niveau-scroll,
+.thema-scroll {
+  max-height: 90px;      /* laat 2–3 items zien */
+  overflow-y: auto;      /* scrollen voor de rest */
+  padding-right: 6px;    /* ruimte voor scrollbar */
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+
+  /* Sidebar wordt een horizontale balk */
+  .sidebar ul {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around; /* verdeelt ze mooi */
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .sidebar li {
+    margin: 0; /* verwijder verticale spacing */
+  }
+
+  .sidebar a {
+    font-size: 16px;
+    padding: 10px 0;
+    display: block;
+  }
+}

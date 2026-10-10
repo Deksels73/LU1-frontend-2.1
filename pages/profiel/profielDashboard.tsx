@@ -1,33 +1,22 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header";
+import type { User, Teacher, ApiError } from "../../types";
 
 const API_URL = "http://localhost:8080";
 
-type User = {
-  id: number;
-  name: string;
-  role: "teacher" | "student";
-};
-
-type Docent = {
-  id: number;
-  name: string;
-};
-
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
-  const [docenten, setDocenten] = useState<Docent[]>([]);
-  const [mijnDocent, setMijnDocent] = useState<Docent | null>(null);
+  const [docenten, setDocenten] = useState<Teacher[]>([]);
+  const [mijnDocent, setMijnDocent] = useState<Teacher | null>(null);
   const [gekozen, setGekozen] = useState("");
   const [message, setMessage] = useState("");
 
   function logout() {
-    localStorage.clear(); // token en user allebei weg
+    localStorage.clear();
     window.location.href = "/profiel/login";
   }
 
-  // Token meesturen en 401 afhandelen
   async function authFetch(path: string, options: RequestInit = {}) {
     const token = localStorage.getItem("token");
 
@@ -62,7 +51,6 @@ export default function Dashboard() {
     const parsed: User = JSON.parse(stored);
     setUser(parsed);
 
-    // Alleen leerlingen kiezen een docent
     if (parsed.role === "student") {
       loadDocentGegevens();
     }
@@ -103,7 +91,8 @@ export default function Dashboard() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.error || "Opslaan mislukt.");
+        const err = data as ApiError;
+        setMessage(err.error || "Opslaan mislukt.");
         return;
       }
 

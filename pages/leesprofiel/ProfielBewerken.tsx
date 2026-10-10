@@ -22,38 +22,20 @@ const EMPTY_FORM: FormState = {
 };
 
 const GENRES = [
-  "historisch",
-  "thriller",
-  "romantiek",
-  "literair",
-  "cultuur",
-  "young-adult",
-  "avontuur",
-  "humor",
-  "non-fictie",
+"biografie", "criminaliteit", "detective", "filosofie", "geheimen", "geluk",
+  "humor", "huiselijk geweld", "identiteit", "liefde", "macht", "migratie",
+  "moederschap", "mysterie", "onderwijs", "ontmoeting", "oorlog", "recht",
+  "reizen", "rouw", "spanning", "sport", "thriller", "veerkracht",
+  "vriendschap", "WOII", "ziekte"
 ];
 
 const ONDERWERPEN = [
-  "WOII",
-  "spanning",
-  "liefde",
-  "relaties",
-  "familie",
-  "humor",
-  "reizen",
-  "verlies",
-  "identiteit",
-  "vriendschap",
-  "ontwikkeling",
-  "mysterie",
-  "detective",
-  "cultuur",
-  "jongeren",
-  "groei",
-  "geluk",
-  "welzijn",
-  "recht",
-  "burgerschap",
+"bedrog", "burgerschap", "creativiteit", "cultuur", "doorzetten", "eten",
+  "ervaringen", "familie", "gender", "groepsdruk", "groei", "herinneringen",
+  "hoop", "inzicht", "jongeren", "moraal", "onderduik", "onderzoek",
+  "ontwikkeling", "opgroeien", "opvoeding", "relaties", "samenleven",
+  "schuld", "stalking", "verbondenheid", "verlies", "welzijn", "zingeving",
+  "zorg"
 ];
 
 export default function ProfielBewerken() {
@@ -225,104 +207,110 @@ export default function ProfielBewerken() {
       <Sidebar />
       <main className="content">
         <Header />
-      </main>
+      
 
       <div className="center-wrapper">
         <h2>Leesprofiel bewerken</h2>
         <p>Pas je voorkeuren aan. Vergeet niet op te slaan.</p>
 
-        <form onSubmit={handleSubmit} className="card">
-          {/* GENRE */}
-          <label>
-            <strong>Genre</strong>
-          </label>
-          <div className="block-group">
-            {GENRES.map((item) => (
-              <div
-                key={item}
-                className={`select-block ${form.genre.includes(item) ? "selected" : ""}`}
-                role="button"
-                aria-pressed={form.genre.includes(item)}
-                tabIndex={0}
-                onClick={() => toggleSelection("genre", item)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    toggleSelection("genre", item);
-                  }
-                }}
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+<form onSubmit={handleSubmit} className="form-card">
 
-          {/* ONDERWERP */}
-          <label>
-            <strong>Onderwerp</strong>
-          </label>
-          <div className="block-group">
-            {ONDERWERPEN.map((item) => (
-              <div
-                key={item}
-                className={`select-block ${form.onderwerp.includes(item) ? "selected" : ""}`}
-                role="button"
-                aria-pressed={form.onderwerp.includes(item)}
-                tabIndex={0}
-                onClick={() => toggleSelection("onderwerp", item)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    toggleSelection("onderwerp", item);
-                  }
-                }}
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+  {/* GENRE */}
+  <div className="form-section">
+    <label><strong>Genre</strong></label>
+    <p className="field-info">Kies het genre dat het beste past bij jouw leesvoorkeur.</p>
 
-          {/* NIVEAU */}
-          <label>
-            <strong>Niveau</strong>
-          </label>
-          <select name="niveau" value={form.niveau} onChange={handleChange}>
-            <option value="">Kies een niveau...</option>
-            <option value="F2">F2</option>
-            <option value="F2-F3">F2-F3</option>
-            <option value="F3">F3</option>
-            <option value="F3+">F3+</option>
-          </select>
+    <div className="block-group">
+      {GENRES.map((item) => (
+        <div
+          key={item}
+          className={`select-block ${form.genre.includes(item) ? "selected" : ""}`}
+          role="button"
+          aria-pressed={form.genre.includes(item)}
+          tabIndex={0}
+          onClick={() => toggleSelection("genre", item)}
+        >
+          {item}
+        </div>
+      ))}
+    </div>
+  </div>
 
-          {/* LENGTE */}
-          <label>
-            <strong>Lengte</strong>
-          </label>
-          <select name="lengte" value={form.lengte} onChange={handleChange}>
-            <option value="">Kies een lengte...</option>
-            <option value="kort">Kort</option>
-            <option value="gemiddeld">Gemiddeld</option>
-            <option value="lang">Lang</option>
-          </select>
+  {/* ONDERWERP */}
+  <div className="form-section">
+    <label><strong>Onderwerp</strong></label>
+    <p className="field-info">Kies een onderwerp dat je interessant vindt.</p>
 
-          {/* LEESDOEL */}
-          <label>
-            <strong>Leesdoel</strong>
-          </label>
-          <textarea
-            name="leesdoel"
-            value={form.leesdoel}
-            onChange={handleChange}
-            placeholder="Schrijf hier jouw leesdoel..."
-          />
+    <div className="block-group">
+      {ONDERWERPEN.map((item) => (
+        <div
+          key={item}
+          className={`select-block ${form.onderwerp.includes(item) ? "selected" : ""}`}
+          role="button"
+          aria-pressed={form.onderwerp.includes(item)}
+          tabIndex={0}
+          onClick={() => toggleSelection("onderwerp", item)}
+        >
+          {item}
+        </div>
+      ))}
+    </div>
+  </div>
 
-          <button className="btn" type="submit">
-            Opslaan
-          </button>
-        </form>
+  {/* NIVEAU */}
+  <div className="form-section">
+    <label><strong>Niveau (moeilijkheid)</strong></label>
+    <p className="field-info">Dit bepaalt wat haalbaar is. Kies hoe moeilijk de tekst mag zijn.</p>
+
+    <select name="niveau" value={form.niveau} onChange={handleChange}>
+      <option value="">Kies een niveau...</option>
+      <option value="F2">F2</option>
+      <option value="F2-F3">F2-F3</option>
+      <option value="F3">F3</option>
+      <option value="F3+">F3+</option>
+    </select>
+  </div>
+
+  {/* LENGTE */}
+  <div className="form-section">
+    <label><strong>Lengte van de tekst</strong></label>
+    <p className="field-info">Dit voorkomt dat je een te lang of te kort boek krijgt.</p>
+
+    <select name="lengte" value={form.lengte} onChange={handleChange}>
+      <option value="">Kies een lengte...</option>
+      <option value="kort">Kort</option>
+      <option value="gemiddeld">Gemiddeld</option>
+      <option value="lang">Lang</option>
+    </select>
+  </div>
+
+  {/* LEESDOEL */}
+  <div className="form-section">
+    <label><strong>Wat is jouw leesdoel?</strong></label>
+    <p className="field-info">
+      Vertel kort wat je hoopt te bereiken met lezen. Bijvoorbeeld: meer leesplezier,
+      beter worden in begrijpend lezen, ontspanning, nieuwe werelden ontdekken, enzovoort.
+    </p>
+
+    <textarea
+      name="leesdoel"
+      value={form.leesdoel}
+      onChange={handleChange}
+      placeholder="Schrijf hier jouw leesdoel..."
+      className="textarea-field"
+    />
+  </div>
+
+  <button className="btn" type="submit">Opslaan</button>
+</form>
+
 
         <button className="btn cancel" type="button" onClick={handleCancel}>
           Annuleren
         </button>
       </div>
+      </main>
     </div>
+    
   );
 }

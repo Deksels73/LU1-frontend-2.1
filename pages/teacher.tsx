@@ -2,26 +2,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
+import type { StudentSummary, LeeslijstItem, ApiError } from "../types";
 
-const API_URL = "http://localhost:8080";
+type StudentsResponse = {
+  students: StudentSummary[];
+} | ApiError;
 
-type Student = {
-  id: number;
-  name: string;
-  email: string;
-};
+type LeeslijstResponse = {
+  books: LeeslijstItem[];
+} | ApiError;
 
 export default function TeacherPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [students, setStudents] = useState<Student[]>([]);
+  const [students, setStudents] = useState<StudentSummary[]>([]);
   const [openStudentId, setOpenStudentId] = useState<number | null>(null);
-  const [leeslijsten, setLeeslijsten] = useState<Record<number, any[]>>({});
-  const [newBookId, setNewBookId] = useState("");
+  const [leeslijsten, setLeeslijsten] = useState<Record<number, LeeslijstItem[]>>({});
+  const [newTitle, setNewTitle] = useState("");
   const [message, setMessage] = useState("");
 
-  // Token meesturen en 401 afhandelen
   async function authFetch(path: string, options: RequestInit = {}) {
     const token = localStorage.getItem("token");
 
@@ -30,7 +30,7 @@ export default function TeacherPage() {
       return null;
     }
 
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetch(`http://localhost:8080${path}`, {
       ...options,
       headers: {
         ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -47,8 +47,18 @@ export default function TeacherPage() {
     return res;
   }
 
+  async function findBookIdByTitle(title: string) {
+    const res = await fetch(`http://localhost:8080/catalog?page=1&limit=999`);
+    const data = await res.json();
+
+    const book = data.books.find(
+      (b: any) => b.Titel.toLowerCase() === title.toLowerCase()
+    );
+
+    return book?._id || null;
+  }
+
   useEffect(() => {
-    // Alleen voor de gebruiker: de echte controle gebeurt in de backend (403)
     const stored = localStorage.getItem("user");
 
     if (!stored || !localStorage.getItem("token")) {
@@ -73,8 +83,14 @@ export default function TeacherPage() {
       const res = await authFetch("/docent/students");
       if (!res) return;
 
-      const data = await res.json();
-      setStudents(data.students || []);
+      const data: StudentsResponse = await res.json();
+
+      if ("error" in data) {
+        console.error(data.error);
+        setStudents([]);
+      } else {
+        setStudents(data.students || []);
+      }
     } catch (err) {
       console.error("Fout bij ophalen studenten:", err);
     } finally {
@@ -86,9 +102,9 @@ export default function TeacherPage() {
     const res = await authFetch(`/docent/leeslijst/${studentId}`);
     if (!res) return;
 
-    const data = await res.json();
+    const data: LeeslijstResponse = await res.json();
 
-    if (!res.ok) {
+    if ("error" in data) {
       setMessage(data.error || "Leeslijst ophalen mislukt.");
       return;
     }
@@ -100,14 +116,13 @@ export default function TeacherPage() {
   }
 
   async function toggleLeeslijst(studentId: number) {
-    // Staat deze student al open? Dan dichtklappen
     if (openStudentId === studentId) {
       setOpenStudentId(null);
       return;
     }
 
     setMessage("");
-    setNewBookId("");
+    setNewTitle("");
 
     try {
       await loadLeeslijst(studentId);
@@ -118,15 +133,22 @@ export default function TeacherPage() {
   }
 
   async function addBookToStudent(studentId: number) {
-    if (!newBookId.trim()) {
-      setMessage("Voer een geldig bookId in.");
+    if (!newTitle.trim()) {
+      setMessage("Voer een titel in.");
+      return;
+    }
+
+    const bookId = await findBookIdByTitle(newTitle.trim());
+
+    if (!bookId) {
+      setMessage("Geen boek gevonden met deze titel.");
       return;
     }
 
     try {
       const res = await authFetch(`/docent/leeslijst/${studentId}/add`, {
         method: "POST",
-        body: JSON.stringify({ bookId: newBookId.trim() }),
+        body: JSON.stringify({ bookId }),
       });
       if (!res) return;
 
@@ -138,9 +160,8 @@ export default function TeacherPage() {
       }
 
       setMessage("Boek toegevoegd!");
-      setNewBookId("");
+      setNewTitle("");
 
-      // Leeslijst verversen zonder in te klappen
       await loadLeeslijst(studentId);
     } catch (err) {
       console.error("Fout bij toevoegen:", err);
@@ -168,14 +189,13 @@ export default function TeacherPage() {
               {students.map((s) => (
                 <li key={s.id} className="student-item">
                   <span>
-                    {s.name} ({s.email})
+                    {s.name}
                   </span>
 
                   <button className="btn-view" onClick={() => toggleLeeslijst(s.id)}>
                     {openStudentId === s.id ? "Verberg leeslijst" : "Bekijk leeslijst"}
                   </button>
 
-                  {/* UITKLAPBARE LEESLIJST PER STUDENT */}
                   {openStudentId === s.id && (
                     <div className="leeslijst-section">
                       <h4>Leeslijst van {s.name}</h4>
@@ -187,13 +207,9 @@ export default function TeacherPage() {
                       {(leeslijsten[s.id] || []).map((item) => (
                         <div key={item.id} className="leeslijst-card">
                           <h4>{item.book?.Titel}</h4>
-                          <p>
-                            <strong>Auteur:</strong> {item.book?.Auteur}
-                          </p>
+                          <p><strong>Auteur:</strong> {item.book?.Auteur}</p>
                           <p>{item.book?.beschrijving}</p>
-                          <p>
-                            <strong>Niveau:</strong> {item.book?.niveau}
-                          </p>
+                          <p><strong>Niveau:</strong> {item.book?.niveau}</p>
                         </div>
                       ))}
 
@@ -202,9 +218,9 @@ export default function TeacherPage() {
 
                         <input
                           type="text"
-                          placeholder="Voer bookId in"
-                          value={newBookId}
-                          onChange={(e) => setNewBookId(e.target.value)}
+                          placeholder="Voer titel in"
+                          value={newTitle}
+                          onChange={(e) => setNewTitle(e.target.value)}
                           className="input-bookid"
                         />
 

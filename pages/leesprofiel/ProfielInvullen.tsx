@@ -20,39 +20,22 @@ const EMPTY_FORM: FormState = {
 };
 
 const GENRES = [
-  "historisch",
-  "thriller",
-  "romantiek",
-  "literair",
-  "cultuur",
-  "young-adult",
-  "avontuur",
-  "humor",
-  "non-fictie",
+"biografie", "criminaliteit", "detective", "filosofie", "geheimen", "geluk",
+  "humor", "huiselijk geweld", "identiteit", "liefde", "macht", "migratie",
+  "moederschap", "mysterie", "onderwijs", "ontmoeting", "oorlog", "recht",
+  "reizen", "rouw", "spanning", "sport", "thriller", "veerkracht",
+  "vriendschap", "WOII", "ziekte"
 ];
 
 const ONDERWERPEN = [
-  "WOII",
-  "spanning",
-  "liefde",
-  "relaties",
-  "familie",
-  "humor",
-  "reizen",
-  "verlies",
-  "identiteit",
-  "vriendschap",
-  "ontwikkeling",
-  "mysterie",
-  "detective",
-  "cultuur",
-  "jongeren",
-  "groei",
-  "geluk",
-  "welzijn",
-  "recht",
-  "burgerschap",
+"bedrog", "burgerschap", "creativiteit", "cultuur", "doorzetten", "eten",
+  "ervaringen", "familie", "gender", "groepsdruk", "groei", "herinneringen",
+  "hoop", "inzicht", "jongeren", "moraal", "onderduik", "onderzoek",
+  "ontwikkeling", "opgroeien", "opvoeding", "relaties", "samenleven",
+  "schuld", "stalking", "verbondenheid", "verlies", "welzijn", "zingeving",
+  "zorg"
 ];
+
 
 export default function ReadingProfile() {
   const router = useRouter();
@@ -168,7 +151,7 @@ export default function ReadingProfile() {
           <h2>Leesprofiel invullen</h2>
           <p>Vul je voorkeuren in zodat we een persoonlijk leesadvies kunnen geven.</p>
 
-          <form onSubmit={handleSubmit} className="card">
+          <form onSubmit={handleSubmit} className="form-card">
             {/* GENRE */}
             <label>
               <strong>Genre</strong>
@@ -222,6 +205,7 @@ export default function ReadingProfile() {
             </div>
 
             {/* NIVEAU */}
+            <div className="form-section">
             <label>
               <strong>Niveau (moeilijkheid)</strong>
             </label>
@@ -235,8 +219,10 @@ export default function ReadingProfile() {
               <option value="F3">F3 (gemiddeld)</option>
               <option value="F3+">F3+ (moeilijk)</option>
             </select>
+             </div>
 
             {/* LENGTE */}
+            <div className="form-section">
             <label>
               <strong>Lengte van de tekst</strong>
             </label>
@@ -249,8 +235,10 @@ export default function ReadingProfile() {
               <option value="gemiddeld">Gemiddeld</option>
               <option value="lang">Lang</option>
             </select>
+            </div>
 
             {/* LEESDOEL */}
+            <div className="form-section">
             <label>
               <strong>Wat is jouw leesdoel?</strong>
             </label>
@@ -267,7 +255,7 @@ export default function ReadingProfile() {
               placeholder="Schrijf hier jouw leesdoel..."
               className="textarea-field"
             />
-
+          </div>
             <button className="btn" type="submit">
               Opslaan
             </button>

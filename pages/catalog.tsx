@@ -1,113 +1,168 @@
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import SkeletonCatalog from "../components/SkeletonCatalog";
 import Header from "../components/header";
 import Sidebar from "../components/sidebar";
+import type { ApiError, CatalogBook, User } from "../types";
+import type { components } from "../types/api";
+
+type CatalogPage = components["schemas"]["CatalogPage"];
+
+type Filters = {
+  niveau: string[];
+  type: string[];
+  thema: string[];
+};
+
+
+const LIMIT = 6;
+const EMPTY_FILTERS: Filters = { niveau: [], type: [], thema: [] };
+
+const TYPES = [
+  "Boek",
+  "Boek - thriller",
+  "Boek - roman",
+  "tijdschrift",
+  "krant (papier)",
+  "digitale krant",
+  "online artikel",
+  "dichtbundel",
+  "blogpost",
+];
+
+const NIVEAUS = ["2F", "3F", "3F+", "2F-3F"];
+
+const THEMAS = [
+  "WOII", "onderduik", "spanning", "stalking", "liefde", "relaties", "ontmoeting",
+  "verbondenheid", "geheimen", "schuld", "familie", "humor", "reizen", "herinneringen",
+  "hoop", "inzicht", "oorlog", "verlies", "identiteit", "zelfreflectie", "creativiteit",
+  "doorzetten", "cultuur", "moraal", "ziekte", "zorg", "opvoeding", "ervaringen",
+  "mysterie", "detective", "ontwikkeling", "veerkracht", "vriendschap", "groei",
+  "groepsdruk", "macht", "gender", "sport", "criminaliteit", "jongeren", "levenslessen",
+  "onderzoek", "samenleving", "welzijn", "recht", "burgerschap", "thriller",
+];
 
 export default function Catalog() {
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
-  const [books, setBooks] = useState([]);
+  const [error, setError] = useState("");
+  const [books, setBooks] = useState<CatalogBook[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const limit = 6;
-  const [selectedBook, setSelectedBook] = useState(null);
+  const [isStudent, setIsStudent] = useState(false);
+  const [selectedBook, setSelectedBook] = useState<CatalogBook | null>(null);
 
-const [filters, setFilters] = useState({
-  niveau: "",
-  type: "",
-  thema: ""
+  // `filters` is wat de gebruiker kiest, `appliedFilters` is wat daadwerkelijk wordt gezocht
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(EMPTY_FILTERS);
+
+  // Alleen leerlingen krijgen de knop om aan de leeslijst toe te voegen
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (!stored) return;
+
+    try {
+      const user: User = JSON.parse(stored);
+      setIsStudent(user.role === "student");
+    } catch {
+      setIsStudent(false);
+    }
+  }, []);
+
+  // Catalogus ophalen bij een andere pagina of andere zoekfilters
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCatalog() {
+      setLoading(true);
+      setError("");
+
+      const params = new URLSearchParams({ page: String(page) });
+Object.entries(appliedFilters).forEach(([key, values]) => {
+  values.forEach(v => params.append(key, v));
 });
 
 
-  // ⭐ FILTER FUNCTIES BUITEN useEffect
-  function applyFilters() {
-setPage(1);
-fetchCatalog();
+      try {
+        const res = await fetch(`http://localhost:8080/catalog?${params.toString()}`);
+        if (!res.ok) throw new Error(`Status ${res.status}`);
 
+        const data: CatalogPage = await res.json();
+        if (cancelled) return;
+
+        setBooks(data.books);
+        setTotal(data.total);
+      } catch (err) {
+        console.error("Fout bij ophalen catalogus:", err);
+        if (!cancelled) setError("De catalogus kon niet worden geladen. Probeer het later opnieuw.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchCatalog();
+
+    // Voorkomt dat een oud antwoord een nieuw antwoord overschrijft
+    return () => {
+      cancelled = true;
+    };
+  }, [page, appliedFilters]);
+
+  function applyFilters() {
+    setAppliedFilters({ ...filters });
+    setPage(1);
   }
 
   function resetFilters() {
-setFilters({ niveau: "", type: "", thema: ""});
-setPage(1);
-fetchCatalog();
-
+    setFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+    setPage(1);
   }
 
-async function fetchCatalog() {
-  setLoading(true);
+  // Toevoegen aan de leeslijst: de backend haalt het leerling-id uit het token
+  async function addToLeeslijst(book: CatalogBook) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/profiel/login");
+      return;
+    }
 
-  const query = new URLSearchParams({
-    page: page.toString(),
-    niveau: filters.niveau,
-    type: filters.type,
-    thema: filters.thema
+    try {
+      const res = await fetch(`http://localhost:8080/leeslijst`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ _id: book._id }),
+      });
 
-  }).toString();
+      if (res.status === 401) {
+        localStorage.clear();
+        router.push("/profiel/login");
+        return;
+      }
 
-  const res = await fetch(`http://localhost:8080/catalog?${query}`);
-  const data = await res.json();
+      if (res.status === 409) {
+        alert("Dit boek staat al in je leeslijst");
+        return;
+      }
 
-  setBooks(data.books);
-  setTotal(data.total);
-  setLoading(false);
-}
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as Partial<ApiError>;
+        alert(err.error || "Toevoegen mislukt");
+        return;
+      }
 
-
-  useEffect(() => {
-    fetchCatalog();
-  }, [page]);
-
-  const totalPages = Math.ceil(total / limit);
-
-   const [studentId, setStudentId] = useState<string | null>(null);
-useEffect(() => {
-  const stored = localStorage.getItem("user");
-  if (!stored) return;
-
-  const user = JSON.parse(stored);
-  setStudentId(user.id);
-}, []);
-
-
-  // ⭐ TOEVOEGEN AAN LEESLIJST
-  async function addToLeeslijst(book) {
-  if (!studentId) {
-    alert("Geen student ID gevonden. Log opnieuw in.");
-    return;
+      alert(`${book.Titel} is toegevoegd aan je leeslijst`);
+    } catch (err) {
+      console.error("Fout bij toevoegen aan leeslijst:", err);
+      alert("Server niet bereikbaar.");
+    }
   }
 
-  const payload = {
-    _id: book._id || book.id,
-    Titel: book.Titel,
-    Auteur: book.Auteur,
-    beschrijving: book.beschrijving,
-    type: book.type,
-    niveau: book.niveau,
-    thema: Array.isArray(book.thema)
-      ? book.thema.join(",")
-      : book.thema || ""
-  };
-
-  const res = await fetch(`http://localhost:8080/leeslijst/${studentId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-   if (res.status === 409) {
-    alert("Dit boek staat al in je leeslijst");
-    return;
-  }
-
-  if (!res.ok) {
-    console.error(await res.text());
-    alert("Toevoegen mislukt");
-    return;
-  }
-
-
-
-  alert(`${book.Titel} is toegevoegd aan je leeslijst`);
-}
-
+  const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
   return (
     <div>
@@ -120,160 +175,174 @@ useEffect(() => {
         <p>Totaal aantal titels: {total}</p>
         <p>Blader door alle beschikbare titels.</p>
 
-        {loading && <SkeletonCatalog />}
 <div className="filters">
 
-  {/* TYPE MATERIAAL */}
-  <select
-    value={filters.type}
-    onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-  >
-    <option value="">Type...</option>
-    <option value="Boek">Boek</option>
-    <option value="Boek - thriller">Boek - thriller</option>
-    <option value="Boek - roman">Boek - roman</option>
-    <option value="tijdschrift">tijdschrift</option>
-    <option value="krant (papier)">krant (papier)</option>
-    <option value="digitale krant">digitale krant</option>
-    <option value="online artikel">online artikel</option>
-    <option value="dichtbundel">dichtbundel</option>
-    <option value="blogpost">blogpost</option>
-  </select>
-
-  {/* NIVEAU */}
-  <select
-    value={filters.niveau}
-    onChange={(e) => setFilters({ ...filters, niveau: e.target.value })}
-  >
-    <option value="">Niveau...</option>
-    <option value="2F">2F</option>
-    <option value="3F">3F</option>
-    <option value="3F+">3F+</option>
-    <option value="2F-3F">2F-3F</option>
-  </select>
-
-  {/* THEMA */}
-  <select
-    value={filters.thema}
-    onChange={(e) => setFilters({ ...filters, thema: e.target.value })}
-  >
-    <option value="">Thema...</option>
-    <option value="WOII">WOII</option>
-    <option value="onderduik">onderduik</option>
-    <option value="spanning">spanning</option>
-    <option value="stalking">stalking</option>
-    <option value="liefde">liefde</option>
-    <option value="relaties">relaties</option>
-    <option value="ontmoeting">ontmoeting</option>
-    <option value="verbondenheid">verbondenheid</option>
-    <option value="geheimen">geheimen</option>
-    <option value="schuld">schuld</option>
-    <option value="familie">familie</option>
-    <option value="humor">humor</option>
-    <option value="reizen">reizen</option>
-    <option value="herinneringen">herinneringen</option>
-    <option value="hoop">hoop</option>
-    <option value="inzicht">inzicht</option>
-    <option value="oorlog">oorlog</option>
-    <option value="verlies">verlies</option>
-    <option value="identiteit">identiteit</option>
-    <option value="zelfreflectie">zelfreflectie</option>
-    <option value="creativiteit">creativiteit</option>
-    <option value="doorzetten">doorzetten</option>
-    <option value="cultuur">cultuur</option>
-    <option value="moraal">moraal</option>
-    <option value="ziekte">ziekte</option>
-    <option value="zorg">zorg</option>
-    <option value="opvoeding">opvoeding</option>
-    <option value="ervaringen">ervaringen</option>
-    <option value="mysterie">mysterie</option>
-    <option value="detective">detective</option>
-    <option value="ontwikkeling">ontwikkeling</option>
-    <option value="veerkracht">veerkracht</option>
-    <option value="vriendschap">vriendschap</option>
-    <option value="groei">groei</option>
-    <option value="groepsdruk">groepsdruk</option>
-    <option value="macht">macht</option>
-    <option value="gender">gender</option>
-    <option value="sport">sport</option>
-    <option value="criminaliteit">criminaliteit</option>
-    <option value="jongeren">jongeren</option>
-    <option value="levenslessen">levenslessen</option>
-    <option value="onderzoek">onderzoek</option>
-    <option value="samenleving">samenleving</option>
-    <option value="welzijn">welzijn</option>
-    <option value="recht">recht</option>
-    <option value="burgerschap">burgerschap</option>
-    <option value="thriller">thriller</option>
-
-  </select>
-
-  <button className="btn-small" onClick={applyFilters}>Filteren</button>
-  <button className="btn-small secondary" onClick={resetFilters}>Reset</button>
+ {/* TYPE FILTER */}
+<div className="filter-group">
+  <strong>Type</strong>
+  <div className="type-scroll">
+    {TYPES.map((t) => (
+      <label key={t} className="checkbox-item">
+        <input
+          type="checkbox"
+          checked={filters.type.includes(t)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setFilters({ ...filters, type: [...filters.type, t] });
+            } else {
+              setFilters({
+                ...filters,
+                type: filters.type.filter((x) => x !== t),
+              });
+            }
+          }}
+        />
+        {t}
+      </label>
+    ))}
+  </div>
 </div>
-        {!loading && (
-<div className="pagination">
-  <button disabled={page === 1} onClick={() => setPage(page - 1)}>
-    Vorige
+
+{/* NIVEAU FILTER */}
+<div className="filter-group">
+  <strong>Niveau</strong>
+  <div className="niveau-scroll">
+    {NIVEAUS.map((n) => (
+      <label key={n} className="checkbox-item">
+        <input
+          type="checkbox"
+          checked={filters.niveau.includes(n)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setFilters({ ...filters, niveau: [...filters.niveau, n] });
+            } else {
+              setFilters({
+                ...filters,
+                niveau: filters.niveau.filter((x) => x !== n),
+              });
+            }
+          }}
+        />
+        {n}
+      </label>
+    ))}
+  </div>
+</div>
+
+{/* THEMA FILTER */}
+<div className="filter-group">
+  <strong>Thema</strong>
+  <div className="thema-scroll">
+    {THEMAS.map((t) => (
+      <label key={t} className="checkbox-item">
+        <input
+          type="checkbox"
+          checked={filters.thema.includes(t)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              setFilters({ ...filters, thema: [...filters.thema, t] });
+            } else {
+              setFilters({
+                ...filters,
+                thema: filters.thema.filter((x) => x !== t),
+              });
+            }
+          }}
+        />
+        {t}
+      </label>
+    ))}
+  </div>
+</div>
+
+  <button className="btn-small" onClick={applyFilters}>
+    Filteren
   </button>
 
-  <span>Pagina {page} van {totalPages}</span>
-
-  <button disabled={page === totalPages} onClick={() => setPage(page + 1)}>
-    Volgende
+  <button className="btn-small secondary" onClick={resetFilters}>
+    Reset
   </button>
 </div>
 
+
+        {loading && <SkeletonCatalog />}
+
+        {!loading && error && <p role="alert">{error}</p>}
+
+        {!loading && !error && books.length === 0 && (
+          <p>Geen titels gevonden voor deze filters.</p>
         )}
 
-        {!loading && (
+        {!loading && !error && books.length > 0 && (
+          <>
+            <div className="pagination">
+              <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                Vorige
+              </button>
 
-<div className="catalog-grid">
-  {books.map(book => (
-    <div key={book._id} className="catalog-card">
+              <span>
+                Pagina {page} van {totalPages}
+              </span>
 
-      <div className="card-header">
-        <h3>{book.Titel}</h3>
-        <button className="add-btn" onClick={() => addToLeeslijst(book)}>+</button>
-      </div>
+              <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                Volgende
+              </button>
+            </div>
 
-      <p className="author">{book.Auteur}</p>
+            <div className="catalog-grid">
+              {books.map((book) => (
+                <div key={book._id} className="catalog-card">
+                  <div className="card-header">
+                    <h3>{book.Titel}</h3>
+                    {isStudent && (
+                      <button
+                        className="add-btn"
+                        aria-label={`Voeg ${book.Titel} toe aan je leeslijst`}
+                        onClick={() => addToLeeslijst(book)}
+                      >
+                        +
+                      </button>
+                    )}
+                  </div>
 
-      <div className="meta">
-        <span><strong>Type:</strong> {book.type}</span>
-        <span><strong>Niveau:</strong> {book.niveau}</span>
-        <span><strong>Thema:</strong> {
-  Array.isArray(book.thema)
-    ? book.thema.join(", ")
-    : typeof book.thema === "string"
-      ? book.thema.split(/[,;]+/).join(", ")
-      : "Geen thema"
-}</span>
+                  <p className="author">{book.Auteur}</p>
 
-      </div>
+                  <div className="meta">
+                    <span>
+                      <strong>Type:</strong> {book.type}
+                    </span>
+                    <span>
+                      <strong>Niveau:</strong> {book.niveau}
+                    </span>
+                    <span>
+                      <strong>Thema:</strong>{" "}
+                      {book.thema
+                        ? book.thema
+                            .split(/[,;]+/)
+                            .map((t) => t.trim())
+                            .filter(Boolean)
+                            .join(", ")
+                        : "Geen thema"}
+                    </span>
+                  </div>
 
-      <p className="description">
-        {book.beschrijving}
-      </p>
-
-    </div>
-  ))}
-</div>
-
-
+                  <p className="description">{book.beschrijving}</p>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
+        {selectedBook && (
+          <div className="popup">
+            <div className="popup-content">
+              <h3>{selectedBook.Titel}</h3>
+              <p>{selectedBook.beschrijving}</p>
 
-          {selectedBook && (
-    <div className="popup">
-      <div className="popup-content">
-        <h3>{selectedBook.Titel}</h3>
-        <p>{selectedBook.beschrijving}</p>
-
-        <button onClick={() => setSelectedBook(null)}>Sluiten</button>
-      </div>
-    </div>
-  )}
+              <button onClick={() => setSelectedBook(null)}>Sluiten</button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,0 +1,26 @@
+.content {
+  margin-left: 260px;
+  padding: 20px;
+  width: calc(100% - 260px);
+  box-sizing: border-box;
+}
+
+.page-wrapper {
+  margin-left: 260px;
+  margin-top: -20px;
+  padding: 20px;
+}
+
+.dashboard-wrapper {
+  margin-left: 260px;
+  margin-top: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center-wrapper {
+  max-width: 550px;
+  margin: 0 auto;
+  padding: 20px;
+}

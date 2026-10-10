@@ -1,8 +1,17 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
+import type { ApiError } from "../../types";
+
+type RegisterForm = {
+  name: string;
+  password: string;
+  code: string;
+};
+
+type RegisterResponse = { message: string } | ApiError;
 
 export default function Register() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<RegisterForm>({
     name: "",
     password: "",
     code: ""
@@ -10,39 +19,41 @@ export default function Register() {
 
   const router = useRouter();
 
-  function handleChange(e) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
   }
 
-  async function handleSubmit(e) {
-  e.preventDefault();
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
 
-  const payload = {
-    name: form.name,
-    password: form.password,
-    code: form.code
-  };
+    const payload = {
+      name: form.name,
+      password: form.password,
+      code: form.code
+    };
 
-  const res = await fetch("http://localhost:8080/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+    const res = await fetch("http://localhost:8080/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-  const data = await res.json();
+    const data: RegisterResponse = await res.json();
 
-  if (!res.ok) {
-    alert(data.error || "Kon gebruiker niet opslaan.");
-    return;
+    if (!res.ok) {
+      const err = data as ApiError;
+      alert(err.error || "Kon gebruiker niet opslaan.");
+      return;
+    }
+
+    alert(`Account aangemaakt voor ${form.name}`);
+    router.push("/profiel/login");
   }
-
-  alert(`Account aangemaakt voor ${form.name}`);
-  router.push("/profiel/login");
-}
-
 
   return (
     <div className="login-container">
@@ -74,14 +85,15 @@ export default function Register() {
         <input
           type="text"
           name="code"
-          placeholder=""
           value={form.code}
           onChange={handleChange}
           required
         />
 
         <button type="submit" className="login-btn">Account maken</button>
-        <button type="button" className="home-btn" onClick={() => router.push("/")}>Terug naar beginscherm</button>
+        <button type="button" className="home-btn" onClick={() => router.push("/")}>
+          Terug naar beginscherm
+        </button>
       </form>
     </div>
   );

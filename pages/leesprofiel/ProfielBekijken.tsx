@@ -3,40 +3,20 @@ import { useRouter } from "next/router";
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header";
 import SkeletonProfielBekijken from "../../components/SkeletonProfielbekijken"; 
-import type { User, Leesprofiel } from "../../types"; 
-
-
-// type User = {
-//   id: number;
-//   name: string;
-//   role: "teacher" | "student";
-// };
-
-// type Profiel = {
-//   genre: string[];
-//   onderwerp: string[];
-//   niveau: string;
-//   lengte: string;
-//   leesdoel: string;
-// };
+import type { User, Leesprofiel, ApiError } from "../../types"; 
 
 export default function LeesprofielOverzicht() {
-  // const [user, setUser] = useState<User | null>(null);
-  // const [profiel, setProfiel] = useState<Profiel | null>(null);
   const [user, setUser] = useState<User | null>(null);
-const [profiel, setProfiel] = useState<Leesprofiel | null>(null);
-
+  const [profiel, setProfiel] = useState<Leesprofiel | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // 1. User uit localStorage (alleen voor weergave en knoppen)
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      setUser(JSON.parse(storedUser) as User);
     }
 
-    // 2. Leesprofiel ophalen met token
     const token = localStorage.getItem("token");
     if (!token) return;
 
@@ -51,14 +31,24 @@ const [profiel, setProfiel] = useState<Leesprofiel | null>(null);
         }
         return res.json();
       })
-      .then((data) => {
-        // Een 404 (nog geen profiel) komt hier als { error } binnen
-        if (data && !data.error) {
-          setProfiel(data);
-          localStorage.setItem("leesprofiel", JSON.stringify(data));
-        }
+      .then((data: Leesprofiel | ApiError | null) => {
+        if (!data || "error" in data) return;
+
+        setProfiel(data);
+        localStorage.setItem("leesprofiel", JSON.stringify(data));
       })
       .catch((err) => console.error("Fout bij ophalen leesprofiel:", err));
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("leesprofiel");
+
+    setTimeout(() => {
+      if (saved) {
+        setProfiel(JSON.parse(saved) as Leesprofiel);
+      }
+      setLoading(false);
+    }, 400);
   }, []);
 
   function handleInvullen() {
@@ -90,55 +80,43 @@ const [profiel, setProfiel] = useState<Leesprofiel | null>(null);
 
     router.push("/leesprofiel/ProfielBewerken");
   }
-  
-useEffect(() => {
-    const saved = localStorage.getItem("leesprofiel");
 
-    setTimeout(() => {
-      if (saved) {
-        setProfiel(JSON.parse(saved));
-      }
-      setLoading(false);
-    }, 400); // kleine delay zodat skeleton zichtbaar is
-  }, []);
+  return (
+    <>
+      <Sidebar />
 
-return (
-  <>
-    <Sidebar />
+      <main className="content">
+        <Header />
 
-    <main className="content">
-      <Header />
+        {loading ? (
+          <SkeletonProfielBekijken />
+        ) : (
+          <div className="leesprofiel-container">
+            <h2>Jouw Leesprofiel</h2>
+            <p>Hier zie je de voorkeuren die je hebt ingevuld.</p>
 
-      {loading ? (
-        // Skeleton staat alleen in de content
-        <SkeletonProfielBekijken />
-      ) : (
-        <div className="leesprofiel-container">
-          <h2>Jouw Leesprofiel</h2>
-          <p>Hier zie je de voorkeuren die je hebt ingevuld.</p>
+            {profiel ? (
+              <ul>
+                <li>Genre: {profiel.genre.join(", ")}</li>
+                <li>Onderwerp: {profiel.onderwerp.join(", ")}</li>
+                <li>Taalniveau: {profiel.niveau}</li>
+                <li>Lengte: {profiel.lengte}</li>
+                <li>Leesdoel: {profiel.leesdoel}</li>
+              </ul>
+            ) : (
+              <p>Je hebt nog geen leesprofiel ingevuld.</p>
+            )}
 
-          {profiel ? (
-            <ul>
-              <li>Genre: {profiel.genre.join(", ")}</li>
-              <li>Onderwerp: {profiel.onderwerp.join(", ")}</li>
-              <li>Taalniveau: {profiel.niveau}</li>
-              <li>Lengte: {profiel.lengte}</li>
-              <li>Leesdoel: {profiel.leesdoel}</li>
-            </ul>
-          ) : (
-            <p>Je hebt nog geen leesprofiel ingevuld.</p>
-          )}
+            {!profiel && (
+              <button onClick={handleInvullen}>Profiel invullen</button>
+            )}
 
-          {!profiel && (
-            <button onClick={handleInvullen}>Profiel invullen</button>
-          )}
-
-          {profiel && (
-            <button onClick={handleBewerken}>Profiel bewerken</button>
-          )}
-        </div>
-      )}
-    </main>
-  </>
-);
+            {profiel && (
+              <button onClick={handleBewerken}>Profiel bewerken</button>
+            )}
+          </div>
+        )}
+      </main>
+    </>
+  );
 }

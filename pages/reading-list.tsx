@@ -3,15 +3,17 @@ import { useRouter } from "next/router";
 import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import SkeletonLeeslijst from "../components/SkeletonLeeslijst";
+import type { LeeslijstItem, ApiError } from "../types";
 
-const API_URL = "http://localhost:8080";
+type LeeslijstResponse = {
+  books: LeeslijstItem[];
+} | ApiError;
 
 export default function Leeslijst() {
   const router = useRouter();
-  const [books, setBooks] = useState<any[]>([]);
+  const [books, setBooks] = useState<LeeslijstItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Eén plek voor het token en de 401-afhandeling
   async function authFetch(path: string, options: RequestInit = {}) {
     const token = localStorage.getItem("token");
 
@@ -20,7 +22,7 @@ export default function Leeslijst() {
       return null;
     }
 
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetch(`http://localhost:8080${path}`, {
       ...options,
       headers: {
         ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -28,7 +30,6 @@ export default function Leeslijst() {
       },
     });
 
-    // Token ongeldig of verlopen
     if (res.status === 401) {
       localStorage.clear();
       router.push("/profiel/login");
@@ -38,14 +39,19 @@ export default function Leeslijst() {
     return res;
   }
 
-  // 1. Leeslijst ophalen
   async function loadBooks() {
     try {
       const res = await authFetch("/leeslijst");
       if (!res) return;
 
-      const data = await res.json();
-      setBooks(data.books ?? []);
+      const data: LeeslijstResponse = await res.json();
+
+      if ("error" in data) {
+        console.error("API-fout:", data.error);
+        setBooks([]);
+      } else {
+        setBooks(data.books ?? []);
+      }
     } catch (err) {
       console.error("Fout bij ophalen leeslijst:", err);
     } finally {
@@ -57,32 +63,29 @@ export default function Leeslijst() {
     loadBooks();
   }, []);
 
-  // 2. Boek verwijderen
-  async function deleteBook(id: string) {
-    try {
-      const res = await authFetch(`/leeslijst/${id}`, { method: "DELETE" });
-      if (!res) return;
-
-      await loadBooks();
-    } catch (err) {
-      console.error("Fout bij verwijderen:", err);
-    }
+  async function deleteBook(id: number) {
+  try {
+    const res = await authFetch(`/leeslijst/${id}`, { method: "DELETE" });
+    if (!res) return;
+    await loadBooks();
+  } catch (err) {
+    console.error("Fout bij verwijderen:", err);
   }
+}
 
-  // 3. Gelezen togglen
-  async function toggleGelezen(id: string, gelezen: boolean) {
-    try {
-      const res = await authFetch(`/leeslijst/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ gelezen }),
-      });
-      if (!res) return;
-
-      await loadBooks();
-    } catch (err) {
-      console.error("Fout bij bijwerken:", err);
-    }
+async function toggleGelezen(id: number, gelezen: boolean) {
+  try {
+    const res = await authFetch(`/leeslijst/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ gelezen }),
+    });
+    if (!res) return;
+    await loadBooks();
+  } catch (err) {
+    console.error("Fout bij bijwerken:", err);
   }
+}
+
 
   if (loading) return <SkeletonLeeslijst />;
 
@@ -99,32 +102,26 @@ export default function Leeslijst() {
         {books.length === 0 && <p>Je hebt nog geen boeken in je leeslijst.</p>}
 
         <ul className="leeslijst-ul">
-          {books.map((book) => (
-            <li key={book.id} className="leeslijst-item">
-              <h2>{book.book.Titel}</h2>
-              <p>
-                <strong>Auteur:</strong> {book.book.Auteur}
-              </p>
-              <p>
-                <strong>Niveau:</strong> {book.book.niveau}
-              </p>
-              <p>
-                <strong>Thema:</strong> {book.book.thema}
-              </p>
-              <p>{book.book.beschrijving}</p>
+          {books.map((item) => (
+            <li key={item.id} className="leeslijst-item">
+              <h2>{item.book.Titel}</h2>
+              <p><strong>Auteur:</strong> {item.book.Auteur}</p>
+              <p><strong>Niveau:</strong> {item.book.niveau}</p>
+              <p><strong>Thema:</strong> {item.book.thema}</p>
+              <p>{item.book.beschrijving}</p>
 
               <label className="leeslijst-checkbox">
                 <input
                   type="checkbox"
-                  checked={book.gelezen}
-                  onChange={(e) => toggleGelezen(book.id, e.target.checked)}
+                  checked={item.gelezen}
+                  onChange={(e) => toggleGelezen(item.id, e.target.checked)}
                 />
                 Gelezen
               </label>
 
               <button
                 className="leeslijst-delete-btn"
-                onClick={() => deleteBook(book.id)}
+                onClick={() => deleteBook(item.id)}
               >
                 Verwijderen
               </button>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/router";
+import type { LoginResponse, ApiError } from "../../types";
 
 export default function Login() {
   const [username, setUsername] = useState("");
@@ -21,20 +22,24 @@ export default function Login() {
 
     const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.error || "Login mislukt");
-      return;
-    }
+if (!res.ok) {
+  const err = data as ApiError;
+  alert(err.error || "Login mislukt");
+  return;
+}
 
-    // Pas opslaan nadat de login gelukt is
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("studentId", String(data.id)); // alleen nodig zolang andere pagina's het nog gebruiken
-    localStorage.setItem(
-      "user",
-      JSON.stringify({ id: data.id, name: data.name, role: data.role })
-    );
+const login: LoginResponse = data;
 
-    router.push(data.role === "teacher" ? "/teacher" : "/");
+// Pas opslaan nadat de login gelukt is
+localStorage.setItem("token", login.token);
+localStorage.setItem("studentId", String(login.id));
+localStorage.setItem(
+  "user",
+  JSON.stringify({ id: login.id, name: login.name, role: login.role })
+);
+
+router.push(login.role === "teacher" ? "/teacher" : "/");
+
   }
 
   return (
@@ -73,13 +78,13 @@ export default function Login() {
           Account aanmaken
         </button>
 
-        <button
+        {/* <button
           type="button"
           className="home-btn"
           onClick={() => router.push("/")}
         >
           Terug naar beginscherm
-        </button>
+        </button> */}
       </form>
     </div>
   );

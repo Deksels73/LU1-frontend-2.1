@@ -1,0 +1,38 @@
+.student-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.student-item {
+  background: #f3f3f3;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.btn-view {
+  background: #0070f3;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.accordion-card {
+  background: #f8f8f8;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+}
+
+.accordion-header {
+  width: 100%;
+  background: #eaeaea;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
