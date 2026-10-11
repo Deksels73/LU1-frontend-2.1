@@ -1,19 +1,12 @@
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header";
+import LeesprofielSkeleton from "../../components/SkeletonLeesprofiel";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import type { Leesprofiel, LeesprofielInput, LeesprofielForm } from "../../types";
+import type { LeesprofielForm } from "../../types";
 
 
-type FormState = {
-  genre: string[];
-  onderwerp: string[];
-  niveau: string;
-  lengte: string;
-  leesdoel: string;
-};
-
-const EMPTY_FORM: FormState = {
+const EMPTY_FORM: LeesprofielForm = {
   genre: [],
   onderwerp: [],
   niveau: "",
@@ -41,8 +34,9 @@ const ONDERWERPEN = [
 export default function ProfielBewerken() {
   const router = useRouter();
 
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [original, setOriginal] = useState<FormState | null>(null);
+  const [form, setForm] = useState<LeesprofielForm>(EMPTY_FORM);
+  const [original, setOriginal] = useState<LeesprofielForm | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Na het opslaan mag de "niet opgeslagen wijzigingen"-waarschuwing niet meer verschijnen
   const skipGuard = useRef(false);
@@ -68,7 +62,7 @@ export default function ProfielBewerken() {
       })
       .then((data) => {
         if (data && !data.error) {
-          const profiel: FormState = {
+          const profiel: LeesprofielForm = {
             genre: data.genre ?? [],
             onderwerp: data.onderwerp ?? [],
             niveau: data.niveau ?? "",
@@ -78,8 +72,12 @@ export default function ProfielBewerken() {
           setForm(profiel);
           setOriginal(profiel);
         }
+        setLoading(false);
       })
-      .catch((err) => console.error("Fout bij ophalen leesprofiel:", err));
+     .catch((err) => {
+  console.error("Fout bij ophalen leesprofiel:", err);
+  setLoading(false);   // <-- ook hier
+});
   }, []);
 
   // 2. Input handler
@@ -202,6 +200,22 @@ export default function ProfielBewerken() {
     }
   }
 
+  if (loading) {
+  return (
+    <div>
+      <Sidebar />
+      <main className="content">
+        <Header />
+
+        <div className="center-wrapper">
+          <LeesprofielSkeleton />
+        </div>
+      </main>
+    </div>
+  );
+}
+
+  
   return (
     <div>
       <Sidebar />

@@ -28,32 +28,64 @@ export default function Register() {
     });
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    const payload = {
-      name: form.name,
-      password: form.password,
-      code: form.code
-    };
-
-    const res = await fetch("http://localhost:8080/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    const data: RegisterResponse = await res.json();
-
-    if (!res.ok) {
-      const err = data as ApiError;
-      alert(err.error || "Kon gebruiker niet opslaan.");
-      return;
-    }
-
-    alert(`Account aangemaakt voor ${form.name}`);
-    router.push("/profiel/login");
+function validatePassword(password: string): string | null {
+  // Minimaal 8 tekens
+  if (password.length < 8) {
+    return "Wachtwoord moet minimaal 8 tekens bevatten.";
   }
+
+  // Minimaal 1 hoofdletter
+  if (!/[A-Z]/.test(password)) {
+    return "Wachtwoord moet minimaal één hoofdletter bevatten.";
+  }
+
+  // Minimaal 1 cijfer
+  if (!/[0-9]/.test(password)) {
+    return "Wachtwoord moet minimaal één cijfer bevatten.";
+  }
+
+  // Minimaal 1 speciaal teken
+  if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) {
+    return "Wachtwoord moet minimaal één speciaal teken bevatten.";
+  }
+
+  return null; // geldig
+}
+
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+
+  const passwordError = validatePassword(form.password);
+  if (passwordError) {
+    alert(passwordError);
+    return;
+  }
+
+  const payload = {
+    name: form.name,
+    password: form.password,
+    code: form.code
+  };
+
+  const res = await fetch("http://localhost:8080/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data: RegisterResponse = await res.json();
+
+  if (!res.ok) {
+    const err = data as ApiError;
+    alert(err.error || "Kon gebruiker niet opslaan.");
+    return;
+  }
+
+  alert(`Account aangemaakt voor ${form.name}`);
+  router.push("/profiel/login");
+}
+
 
   return (
     <div className="login-container">

@@ -1,17 +1,12 @@
 import Sidebar from "../../components/sidebar";
 import Header from "../../components/header";
+import LeesprofielSkeleton from "../../components/SkeletonLeesprofiel";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import type { LeesprofielForm, User } from "../../types";
 
-type FormState = {
-  genre: string[];
-  onderwerp: string[];
-  niveau: string;
-  lengte: string;
-  leesdoel: string;
-};
 
-const EMPTY_FORM: FormState = {
+const EMPTY_FORM: LeesprofielForm = {
   genre: [],
   onderwerp: [],
   niveau: "",
@@ -20,7 +15,7 @@ const EMPTY_FORM: FormState = {
 };
 
 const GENRES = [
-"biografie", "criminaliteit", "detective", "filosofie", "geheimen", "geluk",
+  "biografie", "criminaliteit", "detective", "filosofie", "geheimen", "geluk",
   "humor", "huiselijk geweld", "identiteit", "liefde", "macht", "migratie",
   "moederschap", "mysterie", "onderwijs", "ontmoeting", "oorlog", "recht",
   "reizen", "rouw", "spanning", "sport", "thriller", "veerkracht",
@@ -28,7 +23,7 @@ const GENRES = [
 ];
 
 const ONDERWERPEN = [
-"bedrog", "burgerschap", "creativiteit", "cultuur", "doorzetten", "eten",
+  "bedrog", "burgerschap", "creativiteit", "cultuur", "doorzetten", "eten",
   "ervaringen", "familie", "gender", "groepsdruk", "groei", "herinneringen",
   "hoop", "inzicht", "jongeren", "moraal", "onderduik", "onderzoek",
   "ontwikkeling", "opgroeien", "opvoeding", "relaties", "samenleven",
@@ -36,14 +31,38 @@ const ONDERWERPEN = [
   "zorg"
 ];
 
-
 export default function ReadingProfile() {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [form, setForm] = useState<LeesprofielForm>(EMPTY_FORM);
 
-  // 1. Draft laden
+  // `ready` is pas true als de route guard is gepasseerd en de draft is geladen
+  const [ready, setReady] = useState(false);
+
+  // 1. Route guard + draft laden
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user");
+
+    // Niet ingelogd: terug naar de login, zonder het formulier te tonen
+    if (!token || !storedUser) {
+      router.replace("/profiel/login");
+      return;
+    }
+
+    try {
+      const user: User = JSON.parse(storedUser);
+
+      // Alleen leerlingen hebben een leesprofiel
+      if (user.role !== "student") {
+        router.replace("/");
+        return;
+      }
+    } catch {
+      localStorage.clear();
+      router.replace("/profiel/login");
+      return;
+    }
+
     const savedDraft = localStorage.getItem("leesprofielDraft");
     if (savedDraft) {
       try {
@@ -52,14 +71,15 @@ export default function ReadingProfile() {
         // kapotte draft negeren
       }
     }
-    setDraftLoaded(true);
+
+    setReady(true);
   }, []);
 
-  // 2. Draft opslaan bij elke wijziging (pas nadat de draft is geladen)
+  // 2. Draft opslaan bij elke wijziging (pas nadat de guard en de draft klaar zijn)
   useEffect(() => {
-    if (!draftLoaded) return;
+    if (!ready) return;
     localStorage.setItem("leesprofielDraft", JSON.stringify(form));
-  }, [form, draftLoaded]);
+  }, [form, ready]);
 
   function handleChange(
     e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement | HTMLTextAreaElement>
@@ -67,7 +87,7 @@ export default function ReadingProfile() {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
-    });
+    } as LeesprofielForm);
   }
 
   function toggleSelection(field: "genre" | "onderwerp", value: string) {
@@ -98,16 +118,16 @@ export default function ReadingProfile() {
       return;
     }
 
-    // 4. Token ophalen
+    // 4. Token ophalen (kan tussentijds verlopen of verwijderd zijn)
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/profiel/login");
+      router.replace("/profiel/login");
       return;
     }
 
-    // 5. Opslaan (het studentId komt uit het token, niet meer uit de URL)
+    // 5. Opslaan (het studentId komt uit het token, niet uit de URL)
     try {
-      const res = await fetch("http://localhost:8080/leesprofiel", {
+      const res = await fetch(`http://localhost:8080/leesprofiel`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,7 +138,7 @@ export default function ReadingProfile() {
 
       if (res.status === 401) {
         localStorage.clear();
-        router.push("/profiel/login");
+        router.replace("/profiel/login");
         return;
       }
 
@@ -139,6 +159,23 @@ export default function ReadingProfile() {
       alert("Server niet bereikbaar.");
     }
   }
+
+  // Tijdens de controle (en de doorverwijzing) wordt niets getoond
+ if (!ready) {
+  return (
+    <div>
+      <Sidebar />
+      <main className="content">
+        <Header />
+
+        <div className="center-wrapper">
+          <LeesprofielSkeleton />
+        </div>
+      </main>
+    </div>
+  );
+}
+
 
   return (
     <div>
@@ -206,56 +243,57 @@ export default function ReadingProfile() {
 
             {/* NIVEAU */}
             <div className="form-section">
-            <label>
-              <strong>Niveau (moeilijkheid)</strong>
-            </label>
-            <p className="field-info">
-              Dit bepaalt wat haalbaar is. Kies hoe moeilijk de tekst mag zijn.
-            </p>
-            <select name="niveau" required value={form.niveau} onChange={handleChange}>
-              <option value="">Kies een niveau...</option>
-              <option value="F2">F2 (makkelijk)</option>
-              <option value="F2-F3">F2-F3 (tussenin)</option>
-              <option value="F3">F3 (gemiddeld)</option>
-              <option value="F3+">F3+ (moeilijk)</option>
-            </select>
-             </div>
+              <label>
+                <strong>Niveau (moeilijkheid)</strong>
+              </label>
+              <p className="field-info">
+                Dit bepaalt wat haalbaar is. Kies hoe moeilijk de tekst mag zijn.
+              </p>
+              <select name="niveau" required value={form.niveau} onChange={handleChange}>
+                <option value="">Kies een niveau...</option>
+                <option value="F2">F2 (makkelijk)</option>
+                <option value="F2-F3">F2-F3 (tussenin)</option>
+                <option value="F3">F3 (gemiddeld)</option>
+                <option value="F3+">F3+ (moeilijk)</option>
+              </select>
+            </div>
 
             {/* LENGTE */}
             <div className="form-section">
-            <label>
-              <strong>Lengte van de tekst</strong>
-            </label>
-            <p className="field-info">
-              Dit voorkomt dat je een te lang of te kort boek krijgt.
-            </p>
-            <select name="lengte" required value={form.lengte} onChange={handleChange}>
-              <option value="">Kies een lengte...</option>
-              <option value="kort">Kort</option>
-              <option value="gemiddeld">Gemiddeld</option>
-              <option value="lang">Lang</option>
-            </select>
+              <label>
+                <strong>Lengte van de tekst</strong>
+              </label>
+              <p className="field-info">
+                Dit voorkomt dat je een te lang of te kort boek krijgt.
+              </p>
+              <select name="lengte" required value={form.lengte} onChange={handleChange}>
+                <option value="">Kies een lengte...</option>
+                <option value="kort">Kort</option>
+                <option value="gemiddeld">Gemiddeld</option>
+                <option value="lang">Lang</option>
+              </select>
             </div>
 
             {/* LEESDOEL */}
             <div className="form-section">
-            <label>
-              <strong>Wat is jouw leesdoel?</strong>
-            </label>
-            <p className="field-info">
-              Vertel kort wat je hoopt te bereiken met lezen. Bijvoorbeeld: meer
-              leesplezier, beter worden in begrijpend lezen, ontspanning, nieuwe
-              werelden ontdekken, enzovoort.
-            </p>
-            <textarea
-              name="leesdoel"
-              required
-              value={form.leesdoel}
-              onChange={handleChange}
-              placeholder="Schrijf hier jouw leesdoel..."
-              className="textarea-field"
-            />
-          </div>
+              <label>
+                <strong>Wat is jouw leesdoel?</strong>
+              </label>
+              <p className="field-info">
+                Vertel kort wat je hoopt te bereiken met lezen. Bijvoorbeeld: meer
+                leesplezier, beter worden in begrijpend lezen, ontspanning, nieuwe
+                werelden ontdekken, enzovoort.
+              </p>
+              <textarea
+                name="leesdoel"
+                required
+                value={form.leesdoel}
+                onChange={handleChange}
+                placeholder="Schrijf hier jouw leesdoel..."
+                className="textarea-field"
+              />
+            </div>
+
             <button className="btn" type="submit">
               Opslaan
             </button>

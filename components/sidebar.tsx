@@ -4,7 +4,6 @@ export default function Sidebar() {
   return (
     <div className="sidebar">
 
-      {/* Logo bovenaan */}
       <Link href="/" className="logo">
      <img src="/img/logo.png" alt="Vrij Lezen op Maat logo" />
 
@@ -12,10 +11,10 @@ export default function Sidebar() {
 
       <ul>
         <li><Link href="/leesprofiel/ProfielBekijken">Leesprofiel</Link></li>
-        <li><Link href="/advice">Advies</Link></li>
-        <li><Link href="/catalog">Catalogus</Link></li>
-        <li><Link href="/reading-list">Leeslijst</Link></li>
-        <li><Link href="/teacher">Docent</Link></li>
+        <li><Link href="/advies">Advies</Link></li>
+        <li><Link href="/catalogus">Catalogus</Link></li>
+        <li><Link href="/leeslijst">Leeslijst</Link></li>
+        <li><Link href="/docent">Docent</Link></li>
       </ul>
     </div>
   );

@@ -3,7 +3,6 @@ import Sidebar from "../../components/sidebar";
 import Header from "../../components/header";
 import type { User, Teacher, ApiError } from "../../types";
 
-const API_URL = "http://localhost:8080";
 
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
@@ -25,7 +24,7 @@ export default function Dashboard() {
       return null;
     }
 
-    const res = await fetch(`${API_URL}${path}`, {
+    const res = await fetch(`http://localhost:8080${path}`, {
       ...options,
       headers: {
         ...(options.body ? { "Content-Type": "application/json" } : {}),
@@ -40,21 +39,6 @@ export default function Dashboard() {
 
     return res;
   }
-
-  useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (!stored || !localStorage.getItem("token")) {
-      window.location.href = "/profiel/login";
-      return;
-    }
-
-    const parsed: User = JSON.parse(stored);
-    setUser(parsed);
-
-    if (parsed.role === "student") {
-      loadDocentGegevens();
-    }
-  }, []);
 
   async function loadDocentGegevens() {
     try {
@@ -74,6 +58,23 @@ export default function Dashboard() {
       console.error("Fout bij ophalen docenten:", err);
     }
   }
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (!stored || !localStorage.getItem("token")) {
+      window.location.href = "/profiel/login";
+      return;
+    }
+
+    const parsed: User = JSON.parse(stored);
+    setUser(parsed);
+
+    if (parsed.role === "student") {
+      loadDocentGegevens();
+    }
+  }, []);
+
+
 
   async function saveDocent() {
     if (!gekozen) {
