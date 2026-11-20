@@ -38,7 +38,7 @@ localStorage.setItem(
   JSON.stringify({ id: login.id, name: login.name, role: login.role })
 );
 
-router.push(login.role === "teacher" ? "/teacher" : "/");
+router.push(login.role === "teacher" ? "/docent" : "/");
 
   }
 
