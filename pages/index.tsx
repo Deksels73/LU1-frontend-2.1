@@ -9,6 +9,8 @@ export default function Home() {
   const [profiel, setProfiel] = useState<Leesprofiel | null>(null);
   const router = useRouter();
 
+
+
   // Leesprofiel uit api
 useEffect(() => {
   const token = localStorage.getItem("token");

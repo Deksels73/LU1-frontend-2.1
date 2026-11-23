@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { memo } from "react";
 
-export default function Header() {
+export function Header() {
   return (
     <header className="header">
       <div className="header-left">
@@ -14,3 +15,5 @@ export default function Header() {
     </header>
   );
 }
+
+export default memo(Header);

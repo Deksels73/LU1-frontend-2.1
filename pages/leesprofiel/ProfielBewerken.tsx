@@ -236,7 +236,8 @@ export default function ProfielBewerken() {
 
     <div className="block-group">
       {GENRES.map((item) => (
-        <div
+        <button
+          type="button"
           key={item}
           className={`select-block ${form.genre.includes(item) ? "selected" : ""}`}
           role="button"
@@ -245,7 +246,7 @@ export default function ProfielBewerken() {
           onClick={() => toggleSelection("genre", item)}
         >
           {item}
-        </div>
+        </button>
       ))}
     </div>
   </div>
@@ -257,7 +258,8 @@ export default function ProfielBewerken() {
 
     <div className="block-group">
       {ONDERWERPEN.map((item) => (
-        <div
+        <button
+          type="button"
           key={item}
           className={`select-block ${form.onderwerp.includes(item) ? "selected" : ""}`}
           role="button"
@@ -266,7 +268,7 @@ export default function ProfielBewerken() {
           onClick={() => toggleSelection("onderwerp", item)}
         >
           {item}
-        </div>
+        </button>
       ))}
     </div>
   </div>

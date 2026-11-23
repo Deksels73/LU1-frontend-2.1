@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { memo } from "react"; 
 
-export default function Sidebar() {
+export function Sidebar() {
+    console.log("Sidebar rendert");
   return (
     <div className="sidebar">
 
@@ -19,3 +21,5 @@ export default function Sidebar() {
     </div>
   );
 }
+
+export default memo(Sidebar);
